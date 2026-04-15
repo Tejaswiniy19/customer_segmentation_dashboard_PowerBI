@@ -1,0 +1,21 @@
+CustomerID,CustomerName,Email,Phone,Address,City,State,Country,ZipCode,DateOfBirth,Gender,AgeGroup,JoinDate,ReferralSource
+C001,John Smith,john.smith@email.com,555-0101,123 Main St,New York,NY,USA,10001,1978-05-15,M,40-49,2022-01-15,Referral
+C002,Sarah Johnson,sarah.johnson@email.com,555-0102,456 Oak Ave,Los Angeles,CA,USA,90001,1985-08-22,F,35-39,2021-03-20,Online Search
+C003,Michael Brown,michael.brown@email.com,555-0103,789 Pine Rd,Chicago,IL,USA,60601,1990-12-10,M,30-34,2022-06-10,Social Media
+C004,Jennifer Williams,jennifer.williams@email.com,555-0104,321 Elm St,Houston,TX,USA,77001,1982-03-05,F,40-49,2020-11-05,Referral
+C005,Robert Davis,robert.davis@email.com,555-0105,654 Maple Dr,Phoenix,AZ,USA,85001,1975-07-18,M,45-49,2019-09-12,Organic
+C006,Emily Martinez,emily.martinez@email.com,555-0106,987 Birch Ln,Philadelphia,PA,USA,19101,1988-01-30,F,35-39,2021-05-08,Paid Search
+C007,David Wilson,david.wilson@email.com,555-0107,147 Cedar Ct,San Antonio,TX,USA,78201,1992-11-14,M,30-34,2022-02-20,Social Media
+C008,Jessica Anderson,jessica.anderson@email.com,555-0108,258 Spruce Way,San Diego,CA,USA,92101,1980-06-25,F,40-49,2021-08-15,Referral
+C009,James Taylor,james.taylor@email.com,555-0109,369 Ash Pl,Dallas,TX,USA,75201,1987-02-12,M,35-39,2022-03-10,Online Search
+C010,Mary Thomas,mary.thomas@email.com,555-0110,741 Chestnut Rd,San Jose,CA,USA,95101,1993-09-03,F,30-34,2023-01-05,Social Media
+C011,Charles Lee,charles.lee@email.com,555-0111,852 Hickory St,Austin,TX,USA,78701,1976-04-20,M,45-49,2020-07-22,Organic
+C012,Linda Jackson,linda.jackson@email.com,555-0112,963 Walnut Ave,Jacksonville,FL,USA,32099,1984-10-11,F,35-39,2021-11-30,Paid Search
+C013,Mark White,mark.white@email.com,555-0113,159 Pecan Ln,Fort Worth,TX,USA,76102,1981-12-07,M,40-49,2020-05-15,Referral
+C014,Patricia Harris,patricia.harris@email.com,555-0114,357 Oak Leaf Ct,Columbus,OH,USA,43085,1989-07-28,F,30-34,2022-04-12,Social Media
+C015,Paul Martin,paul.martin@email.com,555-0115,486 Pine Ridge Way,Charlotte,NC,USA,28202,1986-03-15,M,35-39,2021-09-18,Online Search
+C016,Barbara Thompson,barbara.thompson@email.com,555-0116,975 Maple Ridge Rd,San Francisco,CA,USA,94105,1973-11-22,F,50-59,2019-02-10,Organic
+C017,Steven Garcia,steven.garcia@email.com,555-0117,264 Cedar Point Dr,Indianapolis,IN,USA,46204,1988-05-09,M,35-39,2022-08-05,Referral
+C018,Donna Rodriguez,donna.rodriguez@email.com,555-0118,543 Birch Creek Ln,Seattle,WA,USA,98101,1991-01-14,F,30-34,2022-10-20,Social Media
+C019,Edward Jones,edward.jones@email.com,555-0119,837 Spruce Forest Way,Denver,CO,USA,80202,1979-08-19,M,40-49,2020-12-03,Online Search
+C020,Sandra Miller,sandra.miller@email.com,555-0120,246 Ash Valley St,Boston,MA,USA,02101,1994-06-27,F,25-29,2023-02-14,Paid Search

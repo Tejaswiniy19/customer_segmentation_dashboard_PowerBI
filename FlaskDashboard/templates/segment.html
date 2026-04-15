@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="filter-panel">
+  <form method="get">
+    <div class="filter-row">
+      <label>Age Group
+        <select name="age">
+          {% for age in available_filters.age_groups %}
+          <option value="{{ age }}" {% if filters.age == age %}selected{% endif %}>{{ age }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>State
+        <select name="state">
+          {% for state in available_filters.states %}
+          <option value="{{ state }}" {% if filters.state == state %}selected{% endif %}>{{ state }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Channel
+        <select name="channel">
+          {% for channel in available_filters.channels %}
+          <option value="{{ channel }}" {% if filters.channel == channel %}selected{% endif %}>{{ channel }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Apply Filters</button>
+    </div>
+  </form>
+</div>
+
+{% if error %}
+<div class="empty-state">{{ error }}</div>
+{% else %}
+<div class="page-heading">
+  <h2>{{ segment }} Segment Drilldown</h2>
+  <p>Showing the top customers in this segment after selected filters.</p>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <span class="kpi-label">Segment Revenue</span>
+    <span class="kpi-value">${{ "%.2f" | format(total_revenue) }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Avg CLV</span>
+    <span class="kpi-value">${{ "%.2f" | format(average_clv) }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Customer Count</span>
+    <span class="kpi-value">{{ customers | length }}</span>
+  </div>
+</div>
+
+<section class="table-card">
+  <div class="card-header"><h2>Top Customers in {{ segment }}</h2></div>
+  <table>
+    <thead>
+      <tr><th>Customer</th><th>Orders</th><th>CLV</th><th>Recency</th><th>Monetary</th></tr>
+    </thead>
+    <tbody>
+      {% for customer in customers %}
+      <tr>
+        <td>{{ customer.CustomerName }}</td>
+        <td>{{ customer.Frequency }}</td>
+        <td>${{ "%.2f" | format(customer.LifetimeValue) }}</td>
+        <td>{{ customer.Recency }} days</td>
+        <td>${{ "%.2f" | format(customer.Monetary) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

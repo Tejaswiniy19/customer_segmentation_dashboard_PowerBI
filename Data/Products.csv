@@ -1,0 +1,10 @@
+ProductID,ProductName,Category,Subcategory,UnitPrice,CostPrice,Supplier,Status
+P001,Laptop,Electronics,Computers,1299.99,799.99,TechSupply Inc,Active
+P002,Monitor,Electronics,Peripherals,349.99,200.00,DisplayTech Ltd,Active
+P003,Keyboard,Electronics,Peripherals,149.99,80.00,PeripheralCo,Active
+P004,Webcam,Electronics,Peripherals,99.99,55.00,TechSupply Inc,Active
+P005,Mouse Pad,Accessories,Desk Accessories,15.99,5.00,OfficeGear Ltd,Active
+P006,USB Cable,Accessories,Cables,9.99,2.50,CableSystems,Active
+P007,Screen Protector,Accessories,Protection,7.99,1.50,ProtectPro,Active
+P008,Desk Lamp,Accessories,Lighting,45.99,20.00,LightingPlus,Active
+P009,Keyboard Wrist Rest,Accessories,Ergonomic,12.99,4.00,ErgoTech,Active

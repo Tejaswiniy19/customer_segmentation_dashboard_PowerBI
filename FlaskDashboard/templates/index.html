@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="filter-panel">
+  <form method="get">
+    <div class="filter-row">
+      <label>Age Group
+        <select name="age">
+          {% for age in available_filters.age_groups %}
+          <option value="{{ age }}" {% if filters.age == age %}selected{% endif %}>{{ age }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>State
+        <select name="state">
+          {% for state in available_filters.states %}
+          <option value="{{ state }}" {% if filters.state == state %}selected{% endif %}>{{ state }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Channel
+        <select name="channel">
+          {% for channel in available_filters.channels %}
+          <option value="{{ channel }}" {% if filters.channel == channel %}selected{% endif %}>{{ channel }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Apply Filters</button>
+    </div>
+  </form>
+</div>
+
+{% if error %}
+<div class="empty-state">{{ error }}</div>
+{% else %}
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <span class="kpi-label">Total Revenue</span>
+    <span class="kpi-value">${{ "%.2f" | format(metrics.total_revenue) }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Unique Customers</span>
+    <span class="kpi-value">{{ metrics.total_customers }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Average Order Value</span>
+    <span class="kpi-value">${{ "%.2f" | format(metrics.average_order_value) }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Total Orders</span>
+    <span class="kpi-value">{{ metrics.total_orders }}</span>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <section class="chart-card chart-large">
+    <div class="card-header"><h2>Customer Segment Distribution</h2></div>
+    <canvas id="segmentChart"></canvas>
+  </section>
+
+  <section class="chart-card chart-small">
+    <div class="card-header"><h2>Revenue by Channel</h2></div>
+    <canvas id="channelChart"></canvas>
+  </section>
+
+  <section class="table-card">
+    <div class="card-header"><h2>Top Customers by CLV</h2></div>
+    <table>
+      <thead>
+        <tr><th>Customer</th><th>Segment</th><th>Orders</th><th>CLV</th></tr>
+      </thead>
+      <tbody>
+        {% for customer in top_customers %}
+        <tr>
+          <td>{{ customer.CustomerName }}</td>
+          <td>{{ customer.CustomerSegment }}</td>
+          <td>{{ customer.Frequency }}</td>
+          <td>${{ "%.2f" | format(customer.LifetimeValue) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+const segmentData = {
+  labels: {{ segment_counts.keys() | list | safe }},
+  datasets: [{
+    data: {{ segment_counts.values() | list | safe }},
+    backgroundColor: ["#FFD700", "#32CD32", "#87CEEB", "#FFA500", "#FFFF00", "#FF4C4C"],
+    borderColor: "#FFFFFF",
+    borderWidth: 2,
+  }]
+};
+
+const channelData = {
+  labels: {{ channel_revenue.keys() | list | safe }},
+  datasets: [{
+    label: "Revenue",
+    data: {{ channel_revenue.values() | list | safe }},
+    backgroundColor: ["#4F46E5", "#10B981", "#F59E0B"],
+    borderRadius: 8,
+  }]
+};
+
+const segmentChartInstance = new Chart(document.getElementById("segmentChart"), {
+  type: "doughnut",
+  data: segmentData,
+  options: {
+    plugins: { legend: { position: "bottom" } },
+    onClick: (event, elements) => {
+      if (!elements.length) return;
+      const chart = elements[0].chart;
+      const label = chart.data.labels[elements[0].index];
+      window.location.href = `/segment/${encodeURIComponent(label)}?age={{ filters.age }}&state={{ filters.state }}&channel={{ filters.channel }}`;
+    }
+  }
+});
+
+new Chart(document.getElementById("channelChart"), {
+  type: "bar",
+  data: channelData,
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } },
+    onClick: (event, elements) => {
+      if (!elements.length) return;
+      const chart = elements[0].chart;
+      const label = chart.data.labels[elements[0].index];
+      window.location.href = `/?channel=${encodeURIComponent(label)}&age={{ filters.age }}&state={{ filters.state }}`;
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

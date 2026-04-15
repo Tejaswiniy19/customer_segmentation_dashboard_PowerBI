@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="filter-panel">
+  <form method="get">
+    <div class="filter-row">
+      <label>Age Group
+        <select name="age">
+          {% for age in available_filters.age_groups %}
+          <option value="{{ age }}" {% if filter_state.age == age %}selected{% endif %}>{{ age }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>State
+        <select name="state">
+          {% for state in available_filters.states %}
+          <option value="{{ state }}" {% if filter_state.state == state %}selected{% endif %}>{{ state }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Channel
+        <select name="channel">
+          {% for channel in available_filters.channels %}
+          <option value="{{ channel }}" {% if filter_state.channel == channel %}selected{% endif %}>{{ channel }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Apply Filters</button>
+    </div>
+  </form>
+</div>
+
+{% if error %}
+<div class="empty-state">{{ error }}</div>
+{% else %}
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <span class="kpi-label">Total Revenue</span>
+    <span class="kpi-value">${{ "%.2f" | format(metrics.total_revenue) }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Unique Customers</span>
+    <span class="kpi-value">{{ metrics.total_customers }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Avg CLV</span>
+    <span class="kpi-value">${{ "%.2f" | format(metrics.average_customer_value) }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Average Order Value</span>
+    <span class="kpi-value">${{ "%.2f" | format(metrics.average_order_value) }}</span>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <section class="chart-card chart-large">
+    <div class="card-header"><h2>RFM Score Distribution</h2></div>
+    <canvas id="rfmChart"></canvas>
+  </section>
+  <section class="chart-card chart-small">
+    <div class="card-header"><h2>Top Segments</h2></div>
+    <canvas id="segmentTrendChart"></canvas>
+  </section>
+  <section class="table-card">
+    <div class="card-header"><h2>Recency / Frequency / Monetary</h2></div>
+    <table>
+      <thead>
+        <tr><th>Score</th><th>Recency</th><th>Frequency</th><th>Monetary</th></tr>
+      </thead>
+      <tbody>
+        {% for score in [5,4,3,2,1] %}
+        <tr>
+          <td>{{ score }}</td>
+          <td>{{ rfm_distribution.recency[score] }}</td>
+          <td>{{ rfm_distribution.frequency[score] }}</td>
+          <td>{{ rfm_distribution.monetary[score] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+const rfmChart = {
+  labels: [5,4,3,2,1],
+  datasets: [
+    {
+      label: 'Recency',
+      data: [{{ rfm_distribution.recency[5] }}, {{ rfm_distribution.recency[4] }}, {{ rfm_distribution.recency[3] }}, {{ rfm_distribution.recency[2] }}, {{ rfm_distribution.recency[1] }}],
+      borderColor: '#38bdf8',
+      backgroundColor: 'rgba(56, 189, 248, 0.22)',
+      tension: 0.4,
+      yAxisID: 'y',
+    },
+    {
+      label: 'Frequency',
+      data: [{{ rfm_distribution.frequency[5] }}, {{ rfm_distribution.frequency[4] }}, {{ rfm_distribution.frequency[3] }}, {{ rfm_distribution.frequency[2] }}, {{ rfm_distribution.frequency[1] }}],
+      borderColor: '#22c55e',
+      backgroundColor: 'rgba(34, 197, 94, 0.22)',
+      tension: 0.4,
+      yAxisID: 'y',
+    },
+    {
+      label: 'Monetary',
+      data: [{{ rfm_distribution.monetary[5] }}, {{ rfm_distribution.monetary[4] }}, {{ rfm_distribution.monetary[3] }}, {{ rfm_distribution.monetary[2] }}, {{ rfm_distribution.monetary[1] }}],
+      borderColor: '#f59e0b',
+      backgroundColor: 'rgba(245, 158, 11, 0.22)',
+      tension: 0.4,
+      yAxisID: 'y',
+    }
+  ]
+};
+
+new Chart(document.getElementById('rfmChart'), {
+  type: 'line',
+  data: rfmChart,
+  options: {
+    responsive: true,
+    interaction: { intersect: false, mode: 'index' },
+    plugins: { legend: { position: 'bottom' } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+new Chart(document.getElementById('segmentTrendChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ segment_counts.keys() | list | safe }},
+    datasets: [{
+      label: 'Customers',
+      data: {{ segment_counts.values() | list | safe }},
+      backgroundColor: ['#FFD700', '#32CD32', '#87CEEB', '#FFA500', '#FFFF00', '#FF4C4C']
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } },
+    onClick: (e, elements) => {
+      if (!elements.length) return;
+      const chart = elements[0].chart;
+      const index = elements[0].index;
+      const label = chart.data.labels[index];
+      window.location.href = `/segment/${encodeURIComponent(label)}?age={{ filter_state.age }}&state={{ filter_state.state }}&channel={{ filter_state.channel }}`;
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

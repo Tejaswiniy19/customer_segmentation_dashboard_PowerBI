@@ -1,0 +1,299 @@
+# Complete DAX Measures Library
+# Copy these measures into your Power BI file
+
+# =============================================================================
+# BASIC MEASURES
+# =============================================================================
+
+# Transaction Metrics
+TotalRevenue = SUM(Transactions[TotalAmount])
+TotalQuantity = SUM(Transactions[Quantity])
+TransactionCount = COUNTROWS(Transactions)
+AverageOrderValue = DIVIDE([TotalRevenue], [TransactionCount])
+
+# Customer Metrics
+UniqueCustomers = DISTINCTCOUNT(Transactions[CustomerID])
+AverageRevenuePerCustomer = DIVIDE([TotalRevenue], [UniqueCustomers])
+
+# =============================================================================
+# RFM ANALYSIS MEASURES
+# =============================================================================
+
+# RECENCY MEASURES
+DaysSinceLastPurchase =
+VAR LastPurchase = MAXX(
+    FILTER(
+        Transactions,
+        Transactions[CustomerID] = MAX(Customers[CustomerID])
+    ),
+    Transactions[TransactionDate]
+)
+VAR Today = MAX(Transactions[TransactionDate])
+RETURN
+    IF(ISBLANK(LastPurchase), BLANK(), Today - LastPurchase)
+
+RecencyScore =
+VAR Days = [DaysSinceLastPurchase]
+RETURN
+    IF(ISBLANK(Days), 1,
+        IF(Days <= 30, 5,
+        IF(Days <= 60, 4,
+        IF(Days <= 90, 3,
+        IF(Days <= 180, 2, 1)))))
+
+# FREQUENCY MEASURES
+PurchaseCount = COUNTROWS(Transactions)
+
+FrequencyScore =
+VAR Freq = [PurchaseCount]
+VAR AvgFreq = AVERAGEX(ALL(Customers), [PurchaseCount])
+RETURN
+    IF(ISBLANK(Freq), 1,
+        IF(Freq >= AvgFreq * 2, 5,
+        IF(Freq >= AvgFreq * 1.5, 4,
+        IF(Freq >= AvgFreq, 3,
+        IF(Freq >= AvgFreq * 0.5, 2, 1)))))
+
+# MONETARY MEASURES
+TotalMonetary = SUM(Transactions[TotalAmount])
+
+MonetaryScore =
+VAR Monetary = [TotalMonetary]
+VAR AvgMonetary = AVERAGEX(ALL(Customers), [TotalMonetary])
+RETURN
+    IF(ISBLANK(Monetary), 1,
+        IF(Monetary >= AvgMonetary * 2, 5,
+        IF(Monetary >= AvgMonetary * 1.5, 4,
+        IF(Monetary >= AvgMonetary, 3,
+        IF(Monetary >= AvgMonetary * 0.5, 2, 1)))))
+
+# RFM SCORE COMBINATION
+RFMScore = [RecencyScore] * 100 + [FrequencyScore] * 10 + [MonetaryScore]
+
+# CUSTOMER SEGMENT CLASSIFICATION
+CustomerSegment =
+VAR Score = [RFMScore]
+RETURN
+    IF(Score >= 555, "Champions",
+    IF(Score >= 445, "Loyal Customers",
+    IF(Score >= 334, "Potential Loyalists",
+    IF(Score >= 223, "Promising",
+    IF(Score >= 112, "Needs Attention",
+    "At Risk")))))
+
+# =============================================================================
+# CUSTOMER LIFETIME VALUE (CLV) MEASURES
+# =============================================================================
+
+# Historical CLV
+CustomerLifetimeValue = [TotalMonetary]
+
+# Average Order Value
+AvgOrderValue = DIVIDE([TotalMonetary], [PurchaseCount])
+
+# Purchase Frequency (Monthly)
+PurchaseFrequency =
+VAR FirstPurchase = MINX(
+    FILTER(Transactions, Transactions[CustomerID] = MAX(Customers[CustomerID])),
+    Transactions[TransactionDate]
+)
+VAR LastPurchase = MAXX(
+    FILTER(Transactions, Transactions[CustomerID] = MAX(Customers[CustomerID])),
+    Transactions[TransactionDate]
+)
+VAR DaysActive = LastPurchase - FirstPurchase
+RETURN
+    IF(DaysActive = 0, 0, DIVIDE([PurchaseCount], DIVIDE(DaysActive, 30)))
+
+# Predicted CLV (12-month projection)
+PredictedCLV =
+VAR AOV = [AvgOrderValue]
+VAR Frequency = [PurchaseFrequency]
+VAR Tenure = 12  // Assumed 12 months average customer lifespan
+RETURN
+    AOV * Frequency * Tenure
+
+# =============================================================================
+# DEMOGRAPHIC ANALYSIS MEASURES
+# =============================================================================
+
+# Age Group Analysis
+AgeGroupRevenue = [TotalRevenue]
+AgeGroupCount = DISTINCTCOUNT(Customers[CustomerID])
+AvgRevenueByAge = DIVIDE([AgeGroupRevenue], [AgeGroupCount])
+
+# Geographic Analysis
+RevenueByCity = [TotalRevenue]
+RevenueByState = [TotalRevenue]
+CustomerCountByLocation = DISTINCTCOUNT(Customers[CustomerID])
+
+# Channel Analysis
+RevenueByChannel = [TotalRevenue]
+OrdersByChannel = [TransactionCount]
+AvgOrderByChannel = DIVIDE([RevenueByChannel], [OrdersByChannel])
+
+# =============================================================================
+# TIME-BASED ANALYSIS MEASURES
+# =============================================================================
+
+# Monthly Revenue
+MonthlyRevenue = [TotalRevenue]
+
+# Customer Acquisition Rate
+NewCustomersMonthly =
+VAR CurrentMonth = MAX(Transactions[TransactionDate])
+VAR PrevMonth = EOMONTH(CurrentMonth, -1) + 1
+RETURN
+    CALCULATE(
+        DISTINCTCOUNT(Customers[CustomerID]),
+        FILTER(
+            Customers,
+            Customers[JoinDate] >= PrevMonth &&
+            Customers[JoinDate] <= CurrentMonth
+        )
+    )
+
+# Customer Retention Rate
+RetentionRate =
+VAR TotalCustomers = [UniqueCustomers]
+VAR ActiveCustomers = CALCULATE([UniqueCustomers], Transactions[TransactionDate] >= DATEADD(MAX(Transactions[TransactionDate]), -90, DAY))
+RETURN
+    DIVIDE(ActiveCustomers, TotalCustomers)
+
+# =============================================================================
+# SEGMENT PERFORMANCE MEASURES
+# =============================================================================
+
+# Segment Revenue
+SegmentRevenue = [TotalRevenue]
+
+# Segment Customer Count
+SegmentCustomerCount = DISTINCTCOUNT(Customers[CustomerID])
+
+# Segment Average Order Value
+SegmentAOV = DIVIDE([SegmentRevenue], [TransactionCount])
+
+# Segment Average CLV
+SegmentAvgCLV = AVERAGEX(VALUES(Customers[CustomerID]), [CustomerLifetimeValue])
+
+# =============================================================================
+# TREND ANALYSIS MEASURES
+# =============================================================================
+
+# Revenue Growth (Month over Month)
+RevenueGrowthMoM =
+VAR CurrentMonth = [MonthlyRevenue]
+VAR PreviousMonth = CALCULATE([MonthlyRevenue], DATEADD('Date'[Date], -1, MONTH))
+RETURN
+    DIVIDE(CurrentMonth - PreviousMonth, PreviousMonth)
+
+# Customer Growth (Month over Month)
+CustomerGrowthMoM =
+VAR CurrentMonth = [UniqueCustomers]
+VAR PreviousMonth = CALCULATE([UniqueCustomers], DATEADD('Date'[Date], -1, MONTH))
+RETURN
+    DIVIDE(CurrentMonth - PreviousMonth, PreviousMonth)
+
+# =============================================================================
+# CUSTOMER BEHAVIOR MEASURES
+# =============================================================================
+
+# Average Days Between Purchases
+AvgDaysBetweenPurchases =
+VAR PurchaseDates = VALUES(Transactions[TransactionDate])
+VAR DateCount = COUNTROWS(PurchaseDates)
+RETURN
+    IF(DateCount <= 1, 0,
+        DIVIDE(
+            MAXX(PurchaseDates, Transactions[TransactionDate]) -
+            MINX(PurchaseDates, Transactions[TransactionDate]),
+            DateCount - 1
+        )
+    )
+
+# Customer Tenure (Days)
+CustomerTenure =
+VAR FirstPurchase = MINX(
+    FILTER(Transactions, Transactions[CustomerID] = MAX(Customers[CustomerID])),
+    Transactions[TransactionDate]
+)
+VAR LastPurchase = MAXX(
+    FILTER(Transactions, Transactions[CustomerID] = MAX(Customers[CustomerID])),
+    Transactions[TransactionDate]
+)
+RETURN
+    IF(ISBLANK(FirstPurchase), 0, LastPurchase - FirstPurchase)
+
+# =============================================================================
+# PROFITABILITY MEASURES
+# =============================================================================
+
+# Gross Profit
+GrossProfit =
+SUMX(
+    Transactions,
+    Transactions[Quantity] * (Transactions[UnitPrice] - RELATED(Products[CostPrice]))
+)
+
+# Profit Margin
+ProfitMargin = DIVIDE([GrossProfit], [TotalRevenue])
+
+# Average Profit Per Customer
+AvgProfitPerCustomer = DIVIDE([GrossProfit], [UniqueCustomers])
+
+# =============================================================================
+# PREDICTIVE MEASURES
+# =============================================================================
+
+# Churn Risk Score (Based on recency)
+ChurnRiskScore =
+VAR Recency = [DaysSinceLastPurchase]
+RETURN
+    IF(ISBLANK(Recency), 0,
+        IF(Recency > 180, 5,
+        IF(Recency > 90, 4,
+        IF(Recency > 60, 3,
+        IF(Recency > 30, 2, 1)))))
+
+# Customer Value Score (RFM Combined)
+CustomerValueScore = ([RecencyScore] + [FrequencyScore] + [MonetaryScore]) / 3
+
+# =============================================================================
+# DASHBOARD FORMATTING MEASURES
+# =============================================================================
+
+# Format Revenue as Currency
+FormattedRevenue = FORMAT([TotalRevenue], "$#,##0")
+
+# Format Percentages
+FormattedGrowth = FORMAT([RevenueGrowthMoM], "#0.0%")
+
+# Customer Count Formatting
+FormattedCustomerCount = FORMAT([UniqueCustomers], "#,##0")
+
+# =============================================================================
+# CONDITIONAL FORMATTING MEASURES
+# =============================================================================
+
+# Revenue Color Coding
+RevenueColor =
+VAR Revenue = [TotalRevenue]
+VAR AvgRevenue = AVERAGEX(ALL(Customers), [TotalRevenue])
+RETURN
+    IF(Revenue >= AvgRevenue * 1.2, "#00FF00",  // Green for high
+    IF(Revenue >= AvgRevenue * 0.8, "#FFFF00",  // Yellow for medium
+    "#FF0000"))  // Red for low
+
+# Segment Color Mapping
+SegmentColor =
+VAR Segment = [CustomerSegment]
+RETURN
+    SWITCH(Segment,
+        "Champions", "#FFD700",      // Gold
+        "Loyal Customers", "#32CD32", // Lime Green
+        "Potential Loyalists", "#87CEEB", // Sky Blue
+        "Promising", "#FFA500",      // Orange
+        "Needs Attention", "#FFFF00", // Yellow
+        "At Risk", "#FF0000",        // Red
+        "#808080"                    // Gray for others
+    )

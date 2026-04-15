@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="filter-panel">
+  <form method="get">
+    <div class="filter-row">
+      <label>Power BI Embed URL
+        <input type="text" name="report_url" placeholder="Paste Power BI publish-to-web or embed URL" value="{{ embed_url | default('') }}" />
+      </label>
+      <button type="submit">Load Report</button>
+    </div>
+  </form>
+</div>
+
+<section class="embed-card">
+  <div class="card-header"><h2>Power BI Report Embed</h2></div>
+  {% if embed_url %}
+  <div class="embed-frame">
+    <iframe src="{{ embed_url }}" frameborder="0" allowFullScreen="true"></iframe>
+  </div>
+  {% else %}
+  <div class="empty-state">Enter a Power BI embed URL or Publish-to-Web link above to display the report here.</div>
+  {% endif %}
+</section>
+{% endblock %}
